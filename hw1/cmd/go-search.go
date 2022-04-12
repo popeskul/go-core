@@ -27,7 +27,7 @@ func main() {
 
 	pages := scan(urls)
 	for _, p := range pages {
-		if findByAndWith(p.Title, *searchPtr) {
+		if strings.Contains(strings.ToLower(p.Title), strings.ToLower(*searchPtr)) {
 			printText(p)
 		}
 	}
@@ -41,16 +41,13 @@ func scan(urls []string) []crawler.Document {
 		pages, err := s.Scan(url, maxDepth)
 		if err != nil {
 			log.Print(err)
+			continue
 		}
 
 		result = append(result, pages...)
 	}
 
 	return result
-}
-
-func findByAndWith(text, search string) bool {
-	return strings.Contains(strings.ToLower(text), strings.ToLower(search))
 }
 
 func printText(p crawler.Document) {
