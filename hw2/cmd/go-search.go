@@ -7,15 +7,18 @@ import (
 	"go-search/pkg/crawler/spider"
 	"go-search/pkg/index/storage"
 	"log"
+	"math/rand"
 	"os"
+	"sort"
+	"time"
 )
 
 const maxDepth = 3
 
-var urls = []string{"https://go.dev"}
+var urls = []string{"https://go.dev", "https://golang.org"}
 
 func main() {
-	searchPtr := flag.String("s", "", "FindIndexIds")
+	searchPtr := flag.String("s", "", "Search")
 	flag.Parse()
 
 	if *searchPtr == "" {
@@ -39,13 +42,17 @@ func main() {
 	}
 
 	ids := store.FindIndexIds(userInput)
-	results := search(ids, pages)
-	fmt.Println("Results:", results)
+
+	fmt.Println("Results:")
+
+	for _, id := range ids {
+		fmt.Println("- ", search(id, pages))
+	}
 }
 
 func scan(urls []string) []crawler.Document {
 	var result []crawler.Document
-	pageId := 500 // for sorting example we can use pageId-- or rand.Intn
+	randInit := rand.NewSource(time.Now().UnixNano())
 
 	s := spider.New()
 
@@ -57,25 +64,24 @@ func scan(urls []string) []crawler.Document {
 		}
 
 		for _, page := range pages {
-			page.ID = pageId
-			pageId--
+			page.ID = rand.New(randInit).Intn(1000)
 			result = append(result, page)
 		}
 	}
 
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].ID < result[j].ID
+	})
+
 	return result
 }
 
-func search(ids []int, pages []crawler.Document) []crawler.Document {
-	var result []crawler.Document
+func search(id int, pages []crawler.Document) *crawler.Document {
+	index := sort.Search(len(pages), func(index int) bool { return pages[index].ID >= id })
 
-	for _, id := range ids {
-		for _, page := range pages {
-			if page.ID == id {
-				result = append(result, page)
-			}
-		}
+	if index >= len(pages) || pages[index].ID != id {
+		return nil
 	}
 
-	return result
+	return &pages[index]
 }
