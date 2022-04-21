@@ -1,8 +1,8 @@
-package index
+package storage
 
 import "go-search/pkg/crawler"
 
 type Interface interface {
 	Add([]crawler.Document)
-	Search(string) []int
+	Search([]int) []crawler.Document
 }

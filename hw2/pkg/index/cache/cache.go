@@ -1,4 +1,4 @@
-package storage
+package cache
 
 import (
 	"go-search/pkg/crawler"
@@ -27,7 +27,7 @@ func (index *Index) Add(docs []crawler.Document) {
 	}
 }
 
-func (index *Index) FindIndexIds(query string) []int {
+func (index *Index) Search(query string) []int {
 	return index.store[strings.ToLower(query)]
 }
 

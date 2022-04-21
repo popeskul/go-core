@@ -5,83 +5,91 @@ import (
 	"fmt"
 	"go-search/pkg/crawler"
 	"go-search/pkg/crawler/spider"
-	"go-search/pkg/index/storage"
+	"go-search/pkg/index"
+	"go-search/pkg/index/cache"
+	"go-search/pkg/storage"
+	"go-search/pkg/storage/memstore"
 	"log"
 	"math/rand"
-	"os"
-	"sort"
 	"time"
 )
 
-const maxDepth = 3
-
-var urls = []string{"https://go.dev", "https://golang.org"}
+type searcher struct {
+	storage storage.Interface
+	index   index.Interface
+	scanner crawler.Interface
+	sites   []string
+	depth   int
+}
 
 func main() {
+	app := new()
+	app.run()
+
+	fmt.Println("Indexes: \n", app.index)
+
+	for {
+		fmt.Println("Enter memstore: ")
+
+		var userInput string
+		_, err := fmt.Scanln(&userInput)
+		if err != nil {
+			return
+		}
+
+		ids := app.index.Search(userInput)
+		fmt.Println("Found ids: ", ids)
+
+		fmt.Println("Results:")
+		for _, doc := range app.storage.Search(ids) {
+			fmt.Println("- ", doc)
+		}
+	}
+}
+
+func new() *searcher {
+	searcher := searcher{}
+	searcher.scanner = spider.New()
+	searcher.storage = memstore.New()
+	searcher.index = cache.New()
+	searcher.sites = []string{"https://go.dev", "https://golang.org"}
+	searcher.depth = 3
+
+	return &searcher
+}
+
+func (s *searcher) run() {
+	randInit := rand.NewSource(time.Now().UnixNano())
+
 	searchPtr := flag.String("s", "", "Search")
 	flag.Parse()
-
 	if *searchPtr == "" {
 		flag.PrintDefaults()
-		os.Exit(1)
+		fmt.Println("Exit")
+		return
 	}
 
 	fmt.Printf("Request in progress: %s...\n", *searchPtr)
 
-	store := storage.New()
-	pages := scan(urls)
-	store.Add(pages)
+	docs, errs := s.scanner.BatchScan(s.sites, s.depth, 10)
 
-	fmt.Println("Store: ", store)
-	fmt.Println("Enter index: ")
-
-	var userInput string
-	_, err := fmt.Scanln(&userInput)
-	if err != nil {
-		return
-	}
-
-	ids := store.FindIndexIds(userInput)
-
-	fmt.Println("Results:")
-
-	for _, id := range ids {
-		fmt.Println("- ", search(id, pages))
-	}
-}
-
-func scan(urls []string) []crawler.Document {
-	var result []crawler.Document
-	randInit := rand.NewSource(time.Now().UnixNano())
-
-	s := spider.New()
-
-	for _, url := range urls {
-		pages, err := s.Scan(url, maxDepth)
-		if err != nil {
-			log.Print(err)
+	go func() {
+		for err := range errs {
+			log.Println("Error:", err)
 			continue
 		}
+	}()
 
-		for _, page := range pages {
-			page.ID = rand.New(randInit).Intn(1000)
-			result = append(result, page)
+	go func() {
+		for doc := range docs {
+			doc.ID = rand.New(randInit).Intn(1000)
+			s.storage.Add([]crawler.Document{doc})
+			s.index.Add([]crawler.Document{doc})
 		}
-	}
+	}()
 
-	sort.SliceStable(result, func(i, j int) bool {
-		return result[i].ID < result[j].ID
-	})
+	<-docs
+	<-errs
 
-	return result
-}
-
-func search(id int, pages []crawler.Document) *crawler.Document {
-	index := sort.Search(len(pages), func(index int) bool { return pages[index].ID >= id })
-
-	if index >= len(pages) || pages[index].ID != id {
-		return nil
-	}
-
-	return &pages[index]
+	log.Println("Website scanning completed")
 }
