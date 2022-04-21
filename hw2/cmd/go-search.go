@@ -71,25 +71,18 @@ func (s *searcher) run() {
 
 	fmt.Printf("Request in progress: %s...\n", *searchPtr)
 
-	docs, errs := s.scanner.BatchScan(s.sites, s.depth, 10)
-
-	go func() {
-		for err := range errs {
-			log.Println("Error:", err)
-			continue
+	for _, url := range s.sites {
+		docs, errs := s.scanner.Scan(url, s.depth)
+		if errs != nil {
+			log.Println(errs)
 		}
-	}()
 
-	go func() {
-		for doc := range docs {
+		for _, doc := range docs {
 			doc.ID = rand.New(randInit).Intn(1000)
 			s.storage.Add([]crawler.Document{doc})
 			s.index.Add([]crawler.Document{doc})
 		}
-	}()
-
-	<-docs
-	<-errs
+	}
 
 	log.Println("Website scanning completed")
 }
