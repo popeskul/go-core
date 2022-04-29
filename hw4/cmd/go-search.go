@@ -9,8 +9,8 @@ import (
 	"go-search/pkg/index/cache"
 	"go-search/pkg/storage"
 	"go-search/pkg/storage/memstore"
-	"log"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -22,14 +22,28 @@ type searcher struct {
 	depth   int
 }
 
+const fileName = "storage.json"
+
+func init() {
+	searchPtr := flag.String("s", "", "Search")
+	flag.Parse()
+	if *searchPtr == "" {
+		flag.PrintDefaults()
+		fmt.Println("Exit")
+		return
+	}
+
+	fmt.Printf("Request in progress: %s...\n", *searchPtr)
+}
+
 func main() {
-	app := new()
+	app := New()
 	app.run()
 
 	fmt.Println("Indexes: \n", app.index)
 
 	for {
-		fmt.Println("Enter memstore: ")
+		fmt.Println("Enter store index: ")
 
 		var userInput string
 		_, err := fmt.Scanln(&userInput)
@@ -47,7 +61,7 @@ func main() {
 	}
 }
 
-func new() *searcher {
+func New() *searcher {
 	searcher := searcher{}
 	searcher.scanner = spider.New()
 	searcher.storage = memstore.New()
@@ -59,30 +73,81 @@ func new() *searcher {
 }
 
 func (s *searcher) run() {
+	docs := s.scan(s.sites, s.depth)
+
+	for _, doc := range docs {
+		s.storage.Add([]crawler.Document{doc})
+		s.index.Add([]crawler.Document{doc})
+	}
+}
+
+func (s *searcher) scan(urls []string, depth int) []crawler.Document {
+	if isEmptyFile(fileName) {
+		docs := s.scanUrls(urls, depth)
+
+		f, err := os.Create(fileName)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		defer f.Close()
+
+		_, err = s.storage.Write(f, docs)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+
+		return docs
+	}
+
+	var docs []crawler.Document
+
+	f, err := os.Open(fileName)
+	if err != nil {
+		fmt.Println("Error open file: ", err)
+	}
+	defer f.Close()
+
+	docs, err = s.storage.Read(f)
+	if err != nil {
+		fmt.Println("Error read file: ", err)
+	}
+
+	return docs
+}
+
+func (s *searcher) scanUrls(urls []string, depth int) []crawler.Document {
 	randInit := rand.NewSource(time.Now().UnixNano())
+	var allDocs []crawler.Document
 
-	searchPtr := flag.String("s", "", "Search")
-	flag.Parse()
-	if *searchPtr == "" {
-		flag.PrintDefaults()
-		fmt.Println("Exit")
-		return
-	}
-
-	fmt.Printf("Request in progress: %s...\n", *searchPtr)
-
-	for _, url := range s.sites {
-		docs, errs := s.scanner.Scan(url, s.depth)
+	for _, url := range urls {
+		docs, errs := s.scanner.Scan(url, depth)
 		if errs != nil {
-			log.Println(errs)
+			fmt.Println("Error scan: ", errs)
 		}
 
-		for _, doc := range docs {
-			doc.ID = rand.New(randInit).Intn(1000)
-			s.storage.Add([]crawler.Document{doc})
-			s.index.Add([]crawler.Document{doc})
+		for i := range docs {
+			docs[i].ID = rand.New(randInit).Intn(1000)
 		}
+
+		allDocs = append(docs, docs...)
 	}
 
-	log.Println("Website scanning completed")
+	return allDocs
+}
+
+func isEmptyFile(fileName string) bool {
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		return true
+	}
+
+	f, err := os.Stat(fileName)
+	if err != nil {
+		return true
+	}
+
+	if f.Size() == 0 {
+		return true
+	}
+
+	return false
 }

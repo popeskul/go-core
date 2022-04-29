@@ -1,7 +1,9 @@
 package memstore
 
 import (
+	"encoding/json"
 	"go-search/pkg/crawler"
+	"io"
 	"sort"
 )
 
@@ -39,4 +41,24 @@ func (db *DB) Search(ids []int) []crawler.Document {
 	}
 
 	return results
+}
+
+func (db *DB) Read(r io.Reader) ([]crawler.Document, error) {
+	content, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	var docs []crawler.Document
+	err = json.Unmarshal(content, &docs)
+	if err != nil {
+		return nil, err
+	}
+
+	return docs, nil
+}
+
+func (db *DB) Write(w io.Writer, docs []crawler.Document) (int, error) {
+	content, _ := json.Marshal(docs)
+	return w.Write(content)
 }
