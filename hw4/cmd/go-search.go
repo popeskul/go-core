@@ -24,7 +24,10 @@ type searcher struct {
 
 const fileName = "storage.json"
 
-func init() {
+func main() {
+	app := New()
+
+	// flags
 	searchPtr := flag.String("s", "", "Search")
 	flag.Parse()
 	if *searchPtr == "" {
@@ -34,31 +37,21 @@ func init() {
 	}
 
 	fmt.Printf("Request in progress: %s...\n", *searchPtr)
-}
 
-func main() {
-	app := New()
-	app.run()
+	// scanning
+	docs, err := app.scan(app.sites, app.depth)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
+	for _, doc := range docs {
+		app.storage.Add([]crawler.Document{doc})
+		app.index.Add([]crawler.Document{doc})
+	}
 
 	fmt.Println("Indexes: \n", app.index)
 
-	for {
-		fmt.Println("Enter store index: ")
-
-		var userInput string
-		_, err := fmt.Scanln(&userInput)
-		if err != nil {
-			return
-		}
-
-		ids := app.index.Search(userInput)
-		fmt.Println("Found ids: ", ids)
-
-		fmt.Println("Results:")
-		for _, doc := range app.storage.Search(ids) {
-			fmt.Println("- ", doc)
-		}
-	}
+	app.userInput()
 }
 
 func New() *searcher {
@@ -72,22 +65,33 @@ func New() *searcher {
 	return &searcher
 }
 
-func (s *searcher) run() {
-	docs := s.scan(s.sites, s.depth)
+func (s *searcher) userInput() {
+	for {
+		fmt.Println("Enter store index: ")
 
-	for _, doc := range docs {
-		s.storage.Add([]crawler.Document{doc})
-		s.index.Add([]crawler.Document{doc})
+		var userInput string
+		_, err := fmt.Scanln(&userInput)
+		if err != nil {
+			return
+		}
+
+		ids := s.index.Search(userInput)
+		fmt.Println("Found ids: ", ids)
+
+		fmt.Println("Results:")
+		for _, doc := range s.storage.Search(ids) {
+			fmt.Println("- ", doc)
+		}
 	}
 }
 
-func (s *searcher) scan(urls []string, depth int) []crawler.Document {
+func (s *searcher) scan(urls []string, depth int) ([]crawler.Document, error) {
 	if isEmptyFile(fileName) {
 		docs := s.scanUrls(urls, depth)
 
 		f, err := os.Create(fileName)
 		if err != nil {
-			fmt.Println("Error: ", err)
+			return nil, err
 		}
 		defer f.Close()
 
@@ -96,23 +100,23 @@ func (s *searcher) scan(urls []string, depth int) []crawler.Document {
 			fmt.Println("Error: ", err)
 		}
 
-		return docs
+		return docs, nil
 	}
 
 	var docs []crawler.Document
 
 	f, err := os.Open(fileName)
 	if err != nil {
-		fmt.Println("Error open file: ", err)
+		return nil, err
 	}
 	defer f.Close()
 
 	docs, err = s.storage.Read(f)
 	if err != nil {
-		fmt.Println("Error read file: ", err)
+		return nil, err
 	}
 
-	return docs
+	return docs, nil
 }
 
 func (s *searcher) scanUrls(urls []string, depth int) []crawler.Document {
