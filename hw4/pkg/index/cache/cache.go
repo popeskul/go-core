@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"go-search/pkg/crawler"
+	"go-search/hw4/pkg/crawler"
 	"sort"
 	"strings"
 )

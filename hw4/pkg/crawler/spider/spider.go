@@ -3,7 +3,7 @@
 package spider
 
 import (
-	"go-search/pkg/crawler"
+	"go-search/hw4/pkg/crawler"
 	"log"
 	"net/http"
 	"strings"

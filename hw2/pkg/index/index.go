@@ -1,6 +1,6 @@
 package index
 
-import "go-search/pkg/crawler"
+import "go-search/hw2/pkg/crawler"
 
 type Interface interface {
 	Add([]crawler.Document)

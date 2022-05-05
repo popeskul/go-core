@@ -1,7 +1,7 @@
 package memstore
 
 import (
-	"go-search/pkg/crawler"
+	"go-search/hw2/pkg/crawler"
 	"sort"
 )
 

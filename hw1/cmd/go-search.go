@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go-search/pkg/crawler"
-	"go-search/pkg/crawler/spider"
+	"go-search/hw1/pkg/crawler"
+	"go-search/hw1/pkg/crawler/spider"
 	"log"
 	"os"
 	"strings"
