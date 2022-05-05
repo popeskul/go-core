@@ -1,8 +1,6 @@
 package membot
 
-import (
-	"go-dev-v3/GoSearch/pkg/crawler"
-)
+import "go-search/hw1/pkg/crawler"
 
 // Service - имитация служба поискового робота.
 type Service struct{}

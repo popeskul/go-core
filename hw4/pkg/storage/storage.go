@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"go-search/pkg/crawler"
+	"go-search/hw4/pkg/crawler"
 	"io"
 )
 
