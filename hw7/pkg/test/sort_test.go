@@ -6,6 +6,17 @@ import (
 	"testing"
 )
 
+func TestSingleSortString(t *testing.T) {
+	got := []string{"123", "*(&^*(", "-", "", "some", "_______"}
+	want := []string{"", "*(&^*(", "-", "123", "_______", "some"}
+
+	sort.Strings(got)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got = %v, want %v", got, want)
+	}
+}
+
 func TestSortString(t *testing.T) {
 	type args struct {
 		s []string

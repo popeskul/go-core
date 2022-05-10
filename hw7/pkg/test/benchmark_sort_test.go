@@ -7,14 +7,7 @@ import (
 	"testing"
 )
 
-var table = []struct {
-	n int
-}{
-	{n: 100},
-	{n: 1160},
-	{n: 74382},
-	{n: 382399},
-}
+var table = []int{100, 1160, 74382, 382399}
 
 func BenchmarkSingleSortInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -27,11 +20,11 @@ func BenchmarkSingleSortInt(b *testing.B) {
 }
 
 func BenchmarkSortInt(b *testing.B) {
-	for _, t := range table {
-		b.Run(fmt.Sprintf("sort_table_int_%d", t.n), func(b *testing.B) {
+	for _, n := range table {
+		b.Run(fmt.Sprintf("sort_table_int_%d", n), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
-				nums := rand.Perm(t.n)
+				nums := rand.Perm(n)
 				b.StartTimer()
 
 				sort.Ints(nums)
@@ -41,11 +34,11 @@ func BenchmarkSortInt(b *testing.B) {
 }
 
 func BenchmarkSortFloat64s(b *testing.B) {
-	for _, t := range table {
-		b.Run(fmt.Sprintf("sort_table_float64s_%d", t.n), func(b *testing.B) {
+	for _, n := range table {
+		b.Run(fmt.Sprintf("sort_table_float64s_%d", n), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
-				nums := randFloats(100)
+				nums := randFloats(n)
 				b.StartTimer()
 
 				sort.Float64s(nums)
