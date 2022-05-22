@@ -4,7 +4,7 @@ type Employee struct {
 	age int
 }
 
-func (e Employee) GetAge() int {
+func (e Employee) Age() int {
 	return e.age
 }
 
@@ -12,12 +12,12 @@ type Customer struct {
 	age int
 }
 
-func (c Customer) GetAge() int {
+func (c Customer) Age() int {
 	return c.age
 }
 
 type Person interface {
-	GetAge() int
+	Age() int
 }
 
 func Eldest(people ...interface{}) interface{} {
@@ -47,13 +47,13 @@ func EldestWithSwitch(people ...interface{}) interface{} {
 	for _, person := range people {
 		switch p := person.(type) {
 		case Customer:
-			if p.GetAge() > maxAge {
-				maxAge = p.GetAge()
+			if p.Age() > maxAge {
+				maxAge = p.Age()
 				eldest = p
 			}
 		case Employee:
-			if p.GetAge() > maxAge {
-				maxAge = p.GetAge()
+			if p.Age() > maxAge {
+				maxAge = p.Age()
 				eldest = p
 			}
 		}
@@ -65,8 +65,8 @@ func EldestWithGenerics[P Person](people ...P) P {
 	var eldest P
 	var maxAge int
 	for _, p := range people {
-		if p.GetAge() > maxAge {
-			maxAge = p.GetAge()
+		if p.Age() > maxAge {
+			maxAge = p.Age()
 			eldest = p
 		}
 	}

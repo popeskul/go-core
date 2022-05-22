@@ -11,30 +11,6 @@ func TestMaxAge(t *testing.T) {
 		want int
 	}{
 		{
-			name: "Test1: all types are Employee",
-			args: []Person{
-				Employee{
-					age: 20,
-				},
-				Employee{
-					age: 30,
-				},
-			},
-			want: 30,
-		},
-		{
-			name: "Test1: all types are Customer",
-			args: []Person{
-				Customer{
-					age: 20,
-				},
-				Customer{
-					age: 30,
-				},
-			},
-			want: 30,
-		},
-		{
 			name: "Test1: all types are Employee and Customer",
 			args: []Person{
 				Employee{
