@@ -3,10 +3,11 @@ package netsrv
 import (
 	"bufio"
 	"fmt"
-	"go-search/hw11/server/pkg/crawler"
+	"go-search/hw11/pkg/crawler"
 	"log"
 	"net"
 	"strings"
+	"time"
 )
 
 type server struct {
@@ -15,13 +16,16 @@ type server struct {
 }
 
 type Interface interface {
-	Start([]crawler.Document)
+	New([]crawler.Document)
+	Start()
 }
 
-func New() *server {
-	s := server{}
+func New(data []crawler.Document) *server {
+	s := server{
+		pages: data,
+	}
 
-	listener, err := net.Listen("tcp4", ":8000")
+	listener, err := net.Listen("tcp4", "localhost:8000")
 	if err != nil {
 		log.Println(err)
 		return &s
@@ -31,15 +35,22 @@ func New() *server {
 	return &s
 }
 
-func (s *server) Start(data []crawler.Document) {
-	s.pages = data
+func (s *server) Start() error {
 	log.Println("Ready for clients")
 
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
-			log.Println(err)
-			return
+			return err
+		}
+
+		err = conn.SetDeadline(time.Now().Add(time.Minute * 5))
+		if err != nil {
+			return err
+		}
+
+		if err != nil {
+			return err
 		}
 		go s.handler(conn)
 	}
@@ -51,12 +62,21 @@ func (s *server) handler(conn net.Conn) {
 	for {
 		res, err := readUserInput(conn)
 		if err != nil {
+			log.Println(err)
 			return
 		}
 
 		pages := search(res, s.pages)
-		sendsResponsesToUser(conn, []string{"Results for: ", res})
-		sendsResponsesToUser(conn, pages)
+		err = sendsResponsesToUser(conn, []string{"Results for: ", res})
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		err = sendsResponsesToUser(conn, pages)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }
 
@@ -70,17 +90,19 @@ func readUserInput(conn net.Conn) (req string, err error) {
 	return req, err
 }
 
-func sendsResponsesToUser(conn net.Conn, text []string) {
+func sendsResponsesToUser(conn net.Conn, text []string) error {
 	for _, str := range text {
 		_, err := conn.Write([]byte(str))
 		if err != nil {
-			return
+			return err
 		}
 	}
 	_, err := conn.Write([]byte("\n"))
 	if err != nil {
-		return
+		return err
 	}
+
+	return nil
 }
 
 func search(req string, pages []crawler.Document) (res []string) {

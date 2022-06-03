@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"go-search/hw11/server/pkg/crawler"
+	"go-search/hw11/pkg/crawler"
 	"sort"
 	"strings"
 )

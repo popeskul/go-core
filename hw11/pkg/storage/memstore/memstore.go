@@ -2,7 +2,7 @@ package memstore
 
 import (
 	"encoding/json"
-	"go-search/hw11/server/pkg/crawler"
+	"go-search/hw11/pkg/crawler"
 	"io"
 	"sort"
 )

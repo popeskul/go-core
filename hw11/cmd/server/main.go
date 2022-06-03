@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"go-search/hw11/server/pkg/crawler"
-	"go-search/hw11/server/pkg/crawler/spider"
-	"go-search/hw11/server/pkg/index"
-	"go-search/hw11/server/pkg/index/cache"
-	"go-search/hw11/server/pkg/netsrv"
-	"go-search/hw11/server/pkg/storage"
-	"go-search/hw11/server/pkg/storage/memstore"
+	"go-search/hw11/pkg/crawler"
+	"go-search/hw11/pkg/crawler/spider"
+	"go-search/hw11/pkg/index"
+	"go-search/hw11/pkg/index/cache"
+	"go-search/hw11/pkg/netsrv"
+	"go-search/hw11/pkg/storage"
+	"go-search/hw11/pkg/storage/memstore"
 	"log"
 	"math/rand"
 	"os"
@@ -16,7 +16,6 @@ import (
 )
 
 type searcher struct {
-	server  netsrv.Interface
 	storage storage.Interface
 	index   index.Interface
 	scanner crawler.Interface
@@ -43,12 +42,16 @@ func main() {
 
 	fmt.Println("Indexes: \n", app.index)
 
-	app.server.Start(docs)
+	server := netsrv.New(docs)
+	err = server.Start()
+	if err != nil {
+		fmt.Println("Error: ", err)
+		os.Exit(1)
+	}
 }
 
 func New() *searcher {
 	searcher := searcher{}
-	searcher.server = netsrv.New()
 	searcher.scanner = spider.New()
 	searcher.storage = memstore.New()
 	searcher.index = cache.New()
