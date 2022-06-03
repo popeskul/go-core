@@ -1,0 +1,5 @@
+### GET docs
+GET localhost:8080/docs
+
+### POST index
+GET localhost:8080/index
