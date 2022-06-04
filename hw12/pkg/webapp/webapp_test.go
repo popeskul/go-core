@@ -3,81 +3,124 @@ package webapp
 import (
 	"github.com/gorilla/mux"
 	"go-search/hw12/pkg/crawler"
+	_ "go-search/hw12/pkg/testing_init"
+	"net/http"
+	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 )
 
-func TestNew(t *testing.T) {
-	var tests = []struct {
-		docs   []crawler.Document
-		router *mux.Router
-	}{
-		{
-			docs:   []crawler.Document{},
-			router: mux.NewRouter(),
-		},
-		{
-			docs:   []crawler.Document{crawler.Document{}},
-			router: mux.NewRouter(),
-		},
+var (
+	webapp Server
+	docs   []crawler.Document
+)
+
+func TestMain(m *testing.M) {
+	docs = []crawler.Document{
+		{ID: 0, URL: "https://go.dev", Title: "The Go Programming Language", Body: "The Go Programming Language"},
+		{ID: 1, URL: "https://go.dev", Title: "Some title", Body: "Some body"},
 	}
 
-	for _, tt := range tests {
-		s := New(tt.router, tt.docs)
-		if reflect.DeepEqual(s.docs, tt.docs) == false {
-			t.Errorf("New(%v, %v) got %v, expected %v", tt.docs, tt.router, s.docs, tt.docs)
-		}
-		if s.router != tt.router {
-			t.Errorf("New(%v, %v) got %v, expected %v", tt.docs, tt.router, s.router, tt.router)
-		}
+	router := mux.NewRouter()
+	webapp = New(router, docs)
+	r := mux.NewRouter()
+	webapp.routes(r)
+	m.Run()
+}
+
+func TestNew(t *testing.T) {
+	if reflect.TypeOf(webapp) != reflect.TypeOf(Server{}) {
+		t.Error("New() should return Server type")
+	}
+
+	if webapp.router == nil {
+		t.Error("New() should return not nil router")
+	}
+
+	if webapp.docs == nil {
+		t.Error("New() should return not nil docs")
+	}
+
+	if len(webapp.docs) != 2 {
+		t.Error("New() should return 2 docs")
 	}
 }
 
 func TestIndexHandler(t *testing.T) {
-	// TODO: implement request handler with recorder
-	var tests = []struct {
-		docs   []crawler.Document
-		router *mux.Router
-	}{
-		{
-			docs: []crawler.Document{
-				{
-					ID:    0,
-					Title: "Title 0",
-					Body:  "Body 0",
-					URL:   "https://example.com/0",
-				},
-				{
-					ID:    1,
-					Title: "Title 1",
-					Body:  "Body 1",
-					URL:   "https://example.com/1",
-				},
-			},
-			router: mux.NewRouter(),
-		},
-		{
-			docs:   []crawler.Document{crawler.Document{}},
-			router: mux.NewRouter(),
-		},
+	req := httptest.NewRequest(http.MethodGet, "/index", nil)
+	req.Header.Set("content-type", "text/html")
+
+	rr := httptest.NewRecorder()
+
+	webapp.router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected %d, got %d", http.StatusOK, rr.Code)
 	}
 
-	for _, tt := range tests {
-		s := New(tt.router, tt.docs)
-		t.Log(s.docs, tt.docs)
-		if reflect.DeepEqual(s.docs, tt.docs) == false {
-			t.Errorf("New(%v, %v) got %v, expected %v", tt.docs, tt.router, s.docs, tt.docs)
-		}
-		if s.router != tt.router {
-			t.Errorf("New(%v, %v) got %v, expected %v", tt.docs, tt.router, s.router, tt.router)
-		}
+	if !strings.Contains(rr.Body.String(), docs[0].Title) {
+		t.Errorf("Expected body to contain 'The Go Programming Language'")
 	}
 }
 
 func TestSearchIndexHandler(t *testing.T) {
-	t.Errorf("Not implemented")
+	tests := []struct {
+		name     string
+		req      string
+		docs     []crawler.Document
+		expected string
+		status   int
+	}{
+		{
+			name:     "title",
+			req:      "go",
+			docs:     docs,
+			expected: "The Go Programming Language",
+			status:   http.StatusOK,
+		},
+		{
+			name:     "not found",
+			req:      "oops",
+			docs:     docs,
+			expected: "Not found",
+			status:   http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/index/"+tt.req, nil)
+			req.Header.Set("content-type", "text/html")
+
+			rr := httptest.NewRecorder()
+
+			webapp.router.ServeHTTP(rr, req)
+
+			if rr.Code != tt.status {
+				t.Errorf("Expected %d, got %d", http.StatusOK, rr.Code)
+			}
+
+			if !strings.Contains(rr.Body.String(), tt.expected) {
+				t.Errorf("Expected body to contain 'The Go Programming Language'")
+			}
+		})
+	}
 }
 
 func TestDocsHandler(t *testing.T) {
-	t.Errorf("Not implemented")
+	req := httptest.NewRequest(http.MethodGet, "/docs", nil)
+	req.Header.Set("content-type", "text/html")
+
+	rr := httptest.NewRecorder()
+
+	webapp.router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected %d, got %d", http.StatusOK, rr.Code)
+	}
+
+	if !strings.Contains(rr.Body.String(), docs[0].Title) {
+		t.Errorf("Expected body to contain 'The Go Programming Language'")
+	}
 }

@@ -1,5 +1,11 @@
 ### GET docs
 GET localhost:8080/docs
 
-### POST index
+### GET index
 GET localhost:8080/index
+
+### GET search - good query
+GET localhost:8080/index/using
+
+### GET search - bad query
+GET localhost:8080/index/oops
