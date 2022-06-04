@@ -41,6 +41,7 @@ func main() {
 		app.storage.Add([]crawler.Document{doc})
 		app.index.Add([]crawler.Document{doc})
 	}
+	fmt.Println("Site scanning finished")
 
 	r := mux.NewRouter()
 	webapp.New(r, docs)

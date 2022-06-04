@@ -9,12 +9,12 @@
 </head>
 <body>
 <p>Indexes</p>
-<ol>
+<ul>
     {{range .}}
     <li>
-        {{.ID}}
+        {{.ID}} - {{.Title}} - {{.URL}} - {{.Body}}
     </li>
     {{end}}
-</ol>
+</ul>
 </body>
 </html>
