@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	r := mux.NewRouter()
 	api = New(r, docs)
 	api.store.Add(docs)
-	api.routes(r)
+	api.routes()
 	os.Exit(m.Run())
 }
 
@@ -31,7 +31,7 @@ func TestApiNew(t *testing.T) {
 		t.Error("New() should return API type")
 	}
 
-	if api.Router == nil {
+	if api.r == nil {
 		t.Error("New() should return not nil router")
 	}
 
