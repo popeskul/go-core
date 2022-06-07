@@ -20,14 +20,14 @@ func New(router *mux.Router, docs []crawler.Document) Server {
 		docs:   docs,
 		router: router,
 	}
-	s.routes(s.router)
+	s.routes()
 	return s
 }
 
-func (s *Server) routes(r *mux.Router) {
-	r.HandleFunc("/index", s.IndexHandler).Methods(http.MethodGet)
-	r.HandleFunc("/index/{search}", s.SearchIndexHandler).Methods(http.MethodGet)
-	r.HandleFunc("/docs", s.DocsHandler).Methods(http.MethodGet)
+func (s *Server) routes() {
+	s.router.HandleFunc("/index", s.IndexHandler).Methods(http.MethodGet)
+	s.router.HandleFunc("/index/{search}", s.SearchIndexHandler).Methods(http.MethodGet)
+	s.router.HandleFunc("/docs", s.DocsHandler).Methods(http.MethodGet)
 }
 
 func (s *Server) IndexHandler(w http.ResponseWriter, r *http.Request) {

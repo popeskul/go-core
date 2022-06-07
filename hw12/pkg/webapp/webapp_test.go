@@ -6,7 +6,6 @@ import (
 	_ "go-search/hw12/pkg/testing_init"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -22,29 +21,10 @@ func TestMain(m *testing.M) {
 		{ID: 1, URL: "https://go.dev", Title: "Some title", Body: "Some body"},
 	}
 
-	router := mux.NewRouter()
-	webapp = New(router, docs)
 	r := mux.NewRouter()
-	webapp.routes(r)
+	webapp = New(r, docs)
+	webapp.routes()
 	m.Run()
-}
-
-func TestNew(t *testing.T) {
-	if reflect.TypeOf(webapp) != reflect.TypeOf(Server{}) {
-		t.Error("New() should return Server type")
-	}
-
-	if webapp.router == nil {
-		t.Error("New() should return not nil router")
-	}
-
-	if webapp.docs == nil {
-		t.Error("New() should return not nil docs")
-	}
-
-	if len(webapp.docs) != 2 {
-		t.Error("New() should return 2 docs")
-	}
 }
 
 func TestIndexHandler(t *testing.T) {

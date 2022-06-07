@@ -3,6 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
+	"math/rand"
+	"net/http"
+	"os"
+	"time"
+
 	"go-search/hw12/pkg/crawler"
 	"go-search/hw12/pkg/crawler/spider"
 	"go-search/hw12/pkg/index"
@@ -10,11 +16,6 @@ import (
 	"go-search/hw12/pkg/storage"
 	"go-search/hw12/pkg/storage/memstore"
 	"go-search/hw12/pkg/webapp"
-	"log"
-	"math/rand"
-	"net/http"
-	"os"
-	"time"
 )
 
 type searcher struct {
