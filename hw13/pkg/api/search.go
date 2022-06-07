@@ -10,6 +10,16 @@ import (
 	"strings"
 )
 
+// @Summary Search documents
+// @Tags search
+// @Description Search documents
+// @Accept  json
+// @Produce  json
+// @Param query path string true "Search query"
+// @Success 200 {integer} crawler.Document
+// @Failure 404 {string} string "Not found"
+// @Failure 400 {string} string "Bad request"
+// @Router /search/{query} [get]
 func (api *Api) search(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	query := vars["query"]
@@ -28,11 +38,7 @@ func (api *Api) search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(doc)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	_ = json.NewEncoder(w).Encode(doc)
 }
 
 func search(req string, docs []crawler.Document) (res []crawler.Document, err error) {

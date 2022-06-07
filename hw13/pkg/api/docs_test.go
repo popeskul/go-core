@@ -95,7 +95,7 @@ func TestApi_createDoc(t *testing.T) {
 				docJson: docGood,
 			},
 			want: want{
-				status: http.StatusOK,
+				status: http.StatusCreated,
 			},
 		},
 		{

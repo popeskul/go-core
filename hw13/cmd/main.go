@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"go-search/hw13/pkg/crawler"
 	"go-search/hw13/pkg/crawler/spider"
+	_ "go-search/hw13/pkg/docs"
 	"go-search/hw13/pkg/index"
 	"go-search/hw13/pkg/index/cache"
 	"go-search/hw13/pkg/storage"
@@ -14,6 +15,8 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -27,6 +30,11 @@ type searcher struct {
 
 const fileName = "storage.json"
 
+// @title           Go Search
+// @version         1.0
+// @description     This is simple search.
+// @host      localhost:8080
+// @BasePath  /api/v1
 func main() {
 	app := New()
 	log.Println("Start site scanning...")
@@ -44,7 +52,15 @@ func main() {
 
 	r := mux.NewRouter()
 	webapp.New(r, docs)
-	log.Fatal(http.ListenAndServe("localhost:8080", r))
+
+	go func() {
+		log.Fatal(http.ListenAndServe("localhost:8080", r))
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+	fmt.Println("Server shutting down...")
 }
 
 func New() *searcher {
