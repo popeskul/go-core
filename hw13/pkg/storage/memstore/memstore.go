@@ -31,12 +31,9 @@ func (db *DB) Search(ids []int) []crawler.Document {
 	var results []crawler.Document
 
 	for _, id := range ids {
-		index := sort.Search(len(db.docs), func(index int) bool {
-			return db.docs[index].ID >= id
-		})
-
-		if index >= len(db.docs) || db.docs[index].ID != id {
-			return nil
+		index := db.findIndex(id)
+		if index == -1 {
+			continue
 		}
 
 		results = append(results, db.docs[index])
@@ -74,41 +71,70 @@ func (db *DB) Write(w io.Writer, docs []crawler.Document) (int, error) {
 }
 
 func (db *DB) FindById(id int) (crawler.Document, error) {
-	index := sort.Search(len(db.docs), func(index int) bool {
-		return db.docs[index].ID >= id
-	})
-
-	if index >= len(db.docs) || db.docs[index].ID != id {
+	index := db.findIndex(id)
+	if index == -1 {
 		return crawler.Document{}, fmt.Errorf("document with id %d not found", id)
 	}
 
 	return db.docs[index], nil
 }
 
-func (db *DB) Update(id int, doc crawler.Document) error {
-	index := sort.Search(len(db.docs), func(index int) bool {
-		return db.docs[index].ID >= id
-	})
-
-	if index >= len(db.docs) || db.docs[index].ID != id {
-		return fmt.Errorf("document with id %d not found", id)
+func (db *DB) FullUpdate(id int, doc crawler.Document) (crawler.Document, error) {
+	index := db.findIndex(id)
+	if index == -1 {
+		return crawler.Document{}, fmt.Errorf("document with id %d not found", id)
 	}
 
-	db.docs[index] = doc
+	db.docs[index].Body = doc.Body
+	db.docs[index].Title = doc.Title
+	db.docs[index].URL = doc.URL
 
-	return nil
+	// TODO: save to file
+
+	return db.docs[index], nil
+}
+
+func (db *DB) PartialUpdate(id int, doc crawler.Document) (crawler.Document, error) {
+	index := db.findIndex(id)
+	if index == -1 {
+		return crawler.Document{}, fmt.Errorf("document with id %d not found", id)
+	}
+
+	// TODO: maybe we need service to update only changed fields
+	if doc.Body != "" {
+		db.docs[index].Body = doc.Body
+	}
+	if doc.Title != "" {
+		db.docs[index].Title = doc.Title
+	}
+	if doc.URL != "" {
+		db.docs[index].URL = doc.URL
+	}
+
+	// TODO: save to file
+
+	return db.docs[index], nil
 }
 
 func (db *DB) Delete(id int) error {
-	index := sort.Search(len(db.docs), func(index int) bool {
-		return db.docs[index].ID >= id
-	})
-
-	if index >= len(db.docs) || db.docs[index].ID != id {
+	index := db.findIndex(id)
+	if index == -1 {
 		return fmt.Errorf("document with id %d not found", id)
 	}
 
 	db.docs = append(db.docs[:index], db.docs[index+1:]...)
 
 	return nil
+}
+
+func (db *DB) findIndex(id int) int {
+	index := sort.Search(len(db.docs), func(index int) bool {
+		return db.docs[index].ID >= id
+	})
+
+	if index >= len(db.docs) || db.docs[index].ID != id {
+		return -1
+	}
+
+	return index
 }

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"go-search/hw13/pkg/crawler"
@@ -16,7 +15,7 @@ import (
 
 func TestApi_docs(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/docs", nil)
-	req.Header.Set("content-type", "text/html")
+	req.Header.Set("content-type", "application/json")
 
 	rr := httptest.NewRecorder()
 	api.docs(rr, req)
@@ -30,83 +29,196 @@ func TestApi_docs(t *testing.T) {
 	}
 }
 
-func TestApi_createDoc(t *testing.T) {
+func TestApi_find(t *testing.T) {
 	tests := []struct {
 		name   string
-		doc    crawler.Document
+		query  string
 		status int
 	}{
 		{
-			name: "valid",
-			doc: crawler.Document{
-				Title: "test",
-			},
+			name:   "valid",
+			query:  "0",
 			status: http.StatusOK,
 		},
 		{
-			name: "invalid",
-			doc: crawler.Document{
-				Title: "",
-			},
+			name:   "invalid",
+			query:  "",
 			status: http.StatusBadRequest,
+		},
+		{
+			name:   "invalid",
+			query:  "123123",
+			status: http.StatusNotFound,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/docs", strings.NewReader(`{"title": "`+tt.doc.Title+`", "url": "`+tt.doc.URL+`"}`))
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/docs/find/%s", tt.query), nil)
 			req.Header.Set("content-type", "application/json")
+			req = mux.SetURLVars(req, map[string]string{"id": tt.query})
 
 			rr := httptest.NewRecorder()
-			api.createDoc(rr, req)
+			api.findDoc(rr, req)
 
 			if rr.Code != tt.status {
 				t.Errorf("Expected %d, got %d", tt.status, rr.Code)
 			}
 
-			if !strings.Contains(rr.Body.String(), tt.doc.Title) {
-				t.Errorf("Expected body to contain " + tt.doc.Title)
+			if !strings.Contains(rr.Body.String(), tt.query) {
+				t.Errorf("Expected body to contain " + tt.query)
+			}
+		})
+	}
+}
+
+func TestApi_createDoc(t *testing.T) {
+	docGood := `{"URL":"","Title":"test","Body":""}`
+	docBad := `{"URL":"","Title":"","Body":""}`
+
+	type args struct {
+		docJson string
+	}
+
+	type want struct {
+		status int
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "valid",
+			args: args{
+				docJson: docGood,
+			},
+			want: want{
+				status: http.StatusOK,
+			},
+		},
+		{
+			name: "invalid",
+			args: args{
+				docJson: docBad,
+			},
+			want: want{
+				status: http.StatusBadRequest,
+			},
+		},
+		{
+			name: "vary bad",
+			args: args{
+				docJson: `asdfdsfkal;k`,
+			},
+			want: want{
+				status: http.StatusInternalServerError,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/docs", strings.NewReader(tt.args.docJson))
+			req.Header.Set("content-type", "application/json")
+
+			rr := httptest.NewRecorder()
+			api.createDoc(rr, req)
+
+			if rr.Code != tt.want.status {
+				t.Errorf("Expected %d, got %d", tt.want.status, rr.Code)
 			}
 		})
 	}
 }
 
 func TestApi_put(t *testing.T) {
-	tests := []struct {
-		name   string
-		doc    crawler.Document
+	originalDoc := crawler.Document{
+		URL:   "https://www.google.com",
+		Title: "Google",
+	}
+
+	type args struct {
+		docJson string
+		id      string
+	}
+
+	type want struct {
 		status int
+		doc    crawler.Document
+	}
+
+	docGood := `{"URL":"","Title":"test","Body":""}`
+	docBad := `{"URL":"","Title":"","Body":""}`
+
+	tests := []struct {
+		name string
+		args args
+		want want
 	}{
 		{
-			name: "valid",
-			doc: crawler.Document{
-				ID:    1,
-				Title: "test1",
+			name: "found",
+			args: args{
+				docJson: docGood,
+				id:      "0",
 			},
-			status: http.StatusOK,
+			want: want{
+				status: http.StatusOK,
+				doc:    originalDoc,
+			},
 		},
 		{
-			name: "invalid",
-			doc: crawler.Document{
-				ID: 10000,
+			name: "not found",
+			args: args{
+				docJson: docBad,
+				id:      "10000",
 			},
-			status: http.StatusInternalServerError,
+			want: want{
+				status: http.StatusNotFound,
+			},
+		},
+		{
+			name: "very bad json",
+			args: args{
+				docJson: `asd`,
+				id:      "10000",
+			},
+			want: want{
+				status: http.StatusBadRequest,
+			},
+		},
+		{
+			name: "bad id",
+			args: args{
+				docJson: docGood,
+				id:      "asdasd",
+			},
+			want: want{
+				status: http.StatusBadRequest,
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			body := strings.NewReader(`{"title": "` + tt.doc.Title + `", "url": "` + tt.doc.URL + `"}`)
-			path := fmt.Sprintf("/api/v1/docs/%d", tt.doc.ID)
+			body := strings.NewReader(tt.args.docJson)
+			path := fmt.Sprintf("/api/v1/docs/%s", tt.args.id)
 			req := httptest.NewRequest(http.MethodPut, path, body)
-			req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", tt.doc.ID)})
+			req = mux.SetURLVars(req, map[string]string{"id": tt.args.id})
 			req.Header.Set("content-type", "application/json")
 
 			rr := httptest.NewRecorder()
 			api.putDoc(rr, req)
 
-			if rr.Code != tt.status {
-				t.Errorf("Expected %d, got %d", tt.status, rr.Code)
+			checkStatusCode := rr.Code != tt.want.status
+
+			if checkStatusCode {
+				t.Errorf("Expected %d, got %d", tt.want.status, rr.Code)
+			}
+
+			if checkStatusCode && tt.want.doc.URL != originalDoc.URL {
+				t.Errorf("Expected URL to be %s, got %s", originalDoc.URL, tt.want.doc.URL)
 			}
 		})
 	}
@@ -115,97 +227,156 @@ func TestApi_put(t *testing.T) {
 func TestApi_patch(t *testing.T) {
 	resetDB()
 
+	type args struct {
+		id      string
+		docJson string
+	}
+
+	type want struct {
+		status  int
+		docJson string
+	}
+
 	tests := []struct {
-		name   string
-		doc    crawler.Document
-		status int
-		want   crawler.Document
+		name string
+		args args
+		want want
 	}{
 		{
 			name: "changed title",
-			doc: crawler.Document{
-				ID:    0,
-				Title: "test00",
+			args: args{
+				id:      "0",
+				docJson: `{"Title":"test"}`,
 			},
-			status: http.StatusOK,
-			want: crawler.Document{
-				ID:    0,
-				Title: "test00",
+			want: want{
+				docJson: `{"Title":"test"}`,
+				status:  http.StatusOK,
 			},
 		},
 		{
 			name: "doesn't change anything",
-			doc: crawler.Document{
-				ID:    1,
-				Title: "",
+			args: args{
+				id:      "0",
+				docJson: `{"Title":""}`,
 			},
-			status: http.StatusOK,
-			want:   api.Docs[1],
+			want: want{
+				docJson: `{"Title":""}`,
+				status:  http.StatusOK,
+			},
+		},
+		{
+			name: "bad id",
+			args: args{
+				id:      "asdasd",
+				docJson: `{"Title":""}`,
+			},
+			want: want{
+				docJson: `{"Title":""}`,
+				status:  http.StatusBadRequest,
+			},
+		},
+		{
+			name: "not found by id",
+			args: args{
+				id:      "123",
+				docJson: `{"Title":""}`,
+			},
+			want: want{
+				status: http.StatusNotFound,
+			},
+		},
+		{
+			name: "bod request body",
+			args: args{
+				id:      "123",
+				docJson: `{""}`,
+			},
+			want: want{
+				status: http.StatusBadRequest,
+			},
 		},
 	}
 
 	for _, tt := range tests {
+		docJson := `{"URL":"https://www.google.com","Title":"Google","Body":""}`
+
 		t.Run(tt.name, func(t *testing.T) {
-			body := strings.NewReader(`{"title": "` + tt.doc.Title + `"}`)
-			path := fmt.Sprintf("/api/v1/docs/%d", tt.doc.ID)
+			body := strings.NewReader(tt.args.docJson)
+			path := fmt.Sprintf("/api/v1/docs/%s", tt.args.id)
 			req := httptest.NewRequest(http.MethodPatch, path, body)
-			req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", tt.doc.ID)})
+			req = mux.SetURLVars(req, map[string]string{"id": tt.args.id})
 			req.Header.Set("content-type", "application/json")
 
 			rr := httptest.NewRecorder()
 			api.patchDoc(rr, req)
 
-			if rr.Code != tt.status {
-				t.Errorf("Expected %d, got %d", tt.status, rr.Code)
+			checkStatusCode := rr.Code != tt.want.status
+
+			if checkStatusCode {
+				t.Errorf("Expected %d, got %d", tt.want.status, rr.Code)
 			}
 
-			var got crawler.Document
-			err := json.Unmarshal(rr.Body.Bytes(), &got)
-			if err != nil {
-				t.Errorf("Unmarshal: %v", err)
-			}
-
-			if got.Title != tt.want.Title {
-				t.Errorf("Want %v, got %v", tt.want, got)
+			if checkStatusCode && tt.want.docJson != docJson {
+				t.Errorf("Expected %s, got %s", docJson, tt.want.docJson)
 			}
 		})
 	}
 }
 
 func TestApi_deleteDoc(t *testing.T) {
-	tests := []struct {
-		name   string
-		doc    crawler.Document
+	type args struct {
+		id string
+	}
+
+	type want struct {
 		status int
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
 	}{
 		{
-			name: "valid",
-			doc: crawler.Document{
-				ID:    0,
-				Title: "test0",
+			name: "delete by id",
+			args: args{
+				id: "0",
 			},
-			status: http.StatusOK,
+			want: want{
+				status: http.StatusOK,
+			},
 		},
 		{
-			name: "invalid",
-			doc: crawler.Document{
-				ID: 10000,
+			name: "not found by id",
+			args: args{
+				id: "123",
 			},
-			status: http.StatusInternalServerError,
+			want: want{
+				status: http.StatusNotFound,
+			},
+		},
+		{
+			name: "bad id",
+			args: args{
+				id: "aaa",
+			},
+			want: want{
+				status: http.StatusBadRequest,
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := fmt.Sprintf("/api/v1/docs/%d", tt.doc.ID)
+			path := fmt.Sprintf("/api/v1/docs/%s", tt.args.id)
 			req := httptest.NewRequest(http.MethodDelete, path, nil)
-			req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", tt.doc.ID)})
+			req = mux.SetURLVars(req, map[string]string{"id": tt.args.id})
 
 			rr := httptest.NewRecorder()
 			api.deleteDoc(rr, req)
 
-			if rr.Code != tt.status {
-				t.Errorf("Expected %d, got %d", tt.status, rr.Code)
+			if rr.Code != tt.want.status {
+				t.Errorf("Expected %d, got %d", tt.want.status, rr.Code)
 			}
 		})
 	}

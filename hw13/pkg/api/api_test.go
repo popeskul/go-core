@@ -4,7 +4,6 @@ import (
 	"github.com/gorilla/mux"
 	"go-search/hw13/pkg/crawler"
 	"os"
-	"reflect"
 	"testing"
 )
 
@@ -24,18 +23,4 @@ func TestMain(m *testing.M) {
 	api.store.Add(docs)
 	api.routes()
 	os.Exit(m.Run())
-}
-
-func TestApiNew(t *testing.T) {
-	if reflect.TypeOf(api) != reflect.TypeOf(&Api{}) {
-		t.Error("New() should return API type")
-	}
-
-	if api.r == nil {
-		t.Error("New() should return not nil router")
-	}
-
-	if api.Docs == nil {
-		t.Error("New() should return not nil docs")
-	}
 }

@@ -11,6 +11,7 @@ type Interface interface {
 	Read(r io.Reader) ([]crawler.Document, error)
 	Write(w io.Writer, docs []crawler.Document) (int, error)
 	FindById(int) (crawler.Document, error)
-	Update(int, crawler.Document) error
+	PartialUpdate(int, crawler.Document) (crawler.Document, error)
+	FullUpdate(int, crawler.Document) (crawler.Document, error)
 	Delete(int) error
 }
