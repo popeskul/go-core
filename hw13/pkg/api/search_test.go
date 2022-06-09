@@ -71,7 +71,6 @@ func TestApi_search(t *testing.T) {
 				t.Errorf("Expected %d, got %d", tt.want.status, rr.Code)
 			}
 
-			t.Log(rr.Body.String())
 			if !strings.Contains(rr.Body.String(), tt.want.body) {
 				t.Errorf("Expected body to contain %s", tt.want.body)
 			}

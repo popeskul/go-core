@@ -5,6 +5,8 @@ import (
 	"github.com/gorilla/mux"
 	"go-search/hw13/pkg/crawler"
 	"go-search/hw13/pkg/storage/memstore"
+	"io/ioutil"
+	"log"
 	http "net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,6 +16,8 @@ import (
 )
 
 func TestApi_docs(t *testing.T) {
+	log.SetOutput(ioutil.Discard)
+
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/docs", nil)
 	req.Header.Set("content-type", "application/json")
 

@@ -7,19 +7,25 @@ import (
 	"io"
 	"os"
 	"sort"
+	"sync"
 )
 
 type DB struct {
 	docs []crawler.Document
+	mux  sync.Mutex
 }
 
 func New() *DB {
 	return &DB{
 		docs: []crawler.Document{},
+		mux:  sync.Mutex{},
 	}
 }
 
 func (db *DB) Add(docs []crawler.Document) {
+	db.mux.Lock()
+	defer db.mux.Unlock()
+
 	db.docs = append(db.docs, docs...)
 
 	sort.Slice(db.docs, func(i, j int) bool {
@@ -85,9 +91,11 @@ func (db *DB) FullUpdate(id int, doc crawler.Document) (crawler.Document, error)
 		return crawler.Document{}, fmt.Errorf("document with id %d not found", id)
 	}
 
+	db.mux.Lock()
 	db.docs[index].Body = doc.Body
 	db.docs[index].Title = doc.Title
 	db.docs[index].URL = doc.URL
+	db.mux.Unlock()
 
 	// TODO: save to file
 
@@ -101,6 +109,7 @@ func (db *DB) PartialUpdate(id int, doc crawler.Document) (crawler.Document, err
 	}
 
 	// TODO: maybe we need service to update only changed fields
+	db.mux.Lock()
 	if doc.Body != "" {
 		db.docs[index].Body = doc.Body
 	}
@@ -110,6 +119,7 @@ func (db *DB) PartialUpdate(id int, doc crawler.Document) (crawler.Document, err
 	if doc.URL != "" {
 		db.docs[index].URL = doc.URL
 	}
+	db.mux.Unlock()
 
 	// TODO: save to file
 
@@ -117,6 +127,9 @@ func (db *DB) PartialUpdate(id int, doc crawler.Document) (crawler.Document, err
 }
 
 func (db *DB) Delete(id int) error {
+	db.mux.Lock()
+	defer db.mux.Unlock()
+
 	index := db.findIndex(id)
 	if index == -1 {
 		return fmt.Errorf("document with id %d not found", id)

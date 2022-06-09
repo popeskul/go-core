@@ -8,14 +8,13 @@ import (
 	"go-search/hw13/pkg/storage"
 	"go-search/hw13/pkg/storage/memstore"
 	"net/http"
-	"sync"
 )
 
 type Api struct {
+	Docs []crawler.Document
+
 	r     *mux.Router
-	Docs  []crawler.Document
 	store storage.Interface
-	mux   sync.Mutex
 }
 
 func New(router *mux.Router, docs []crawler.Document) *Api {
@@ -23,7 +22,6 @@ func New(router *mux.Router, docs []crawler.Document) *Api {
 		Docs:  docs,
 		r:     router,
 		store: memstore.New(),
-		mux:   sync.Mutex{},
 	}
 	s.store.Add(docs)
 	s.routes()

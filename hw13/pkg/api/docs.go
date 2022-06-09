@@ -80,9 +80,9 @@ func (api *Api) createDoc(w http.ResponseWriter, r *http.Request) {
 	rand.Seed(time.Now().UnixNano())
 	d.ID = rand.Intn(100000)
 
-	api.Docs = append(api.Docs, d)
-
+	api.store.Add([]crawler.Document{d})
 	doc := api.Docs[len(api.Docs)-1]
+	
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(doc)
 }
@@ -115,10 +115,7 @@ func (api *Api) putDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.mux.Lock()
 	res, err := api.store.FullUpdate(id, d)
-	api.mux.Unlock()
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -155,10 +152,7 @@ func (api *Api) patchDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.mux.Lock()
 	updatedDoc, err := api.store.PartialUpdate(id, d)
-	api.mux.Unlock()
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -186,9 +180,7 @@ func (api *Api) deleteDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.mux.Lock()
 	err = api.store.Delete(id)
-	api.mux.Unlock()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
