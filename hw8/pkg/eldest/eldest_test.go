@@ -38,27 +38,17 @@ var tests = []struct {
 			age: 30,
 		},
 	},
-	{
-		name: "Test 3: all types are Employee and Customer",
-		args: []Person{
-			Employee{
-				age: 20,
-			},
-			Customer{
-				age: 30,
-			},
-		},
-		want: Customer{
-			age: 30,
-		},
-	},
 }
 
 func TestEldest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Eldest(tt.args); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("got = %v, want %v", got, tt.want)
+			for _, p := range tt.args {
+				got := EldestWithSwitch(p)
+
+				if !reflect.DeepEqual(reflect.TypeOf(got), reflect.TypeOf(tt.want)) {
+					t.Errorf("got = %v, want %v", reflect.TypeOf(got), reflect.TypeOf(tt.want))
+				}
 			}
 		})
 	}
@@ -77,8 +67,12 @@ func TestEldestWithGenerics(t *testing.T) {
 func TestEldestWithSwitch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := EldestWithSwitch(tt.args); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("got = %v, want %v", got, tt.want)
+			for _, p := range tt.args {
+				got := EldestWithSwitch(p)
+
+				if !reflect.DeepEqual(reflect.TypeOf(got), reflect.TypeOf(tt.want)) {
+					t.Errorf("got = %v, want %v", reflect.TypeOf(got), reflect.TypeOf(tt.want))
+				}
 			}
 		})
 	}
