@@ -387,7 +387,6 @@ func TestApi_deleteDoc(t *testing.T) {
 }
 
 func resetDB() {
-	api.Docs = docs
 	api.store = memstore.New()
 	api.store.Add(docs)
 }

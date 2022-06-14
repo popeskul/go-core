@@ -17,8 +17,9 @@ type DB struct {
 
 func New() *DB {
 	return &DB{
+		mux: sync.Mutex{},
+
 		docs: []crawler.Document{},
-		mux:  sync.Mutex{},
 	}
 }
 
@@ -31,6 +32,10 @@ func (db *DB) Add(docs []crawler.Document) {
 	sort.Slice(db.docs, func(i, j int) bool {
 		return db.docs[i].ID < db.docs[j].ID
 	})
+}
+
+func (db *DB) GetAll() []crawler.Document {
+	return db.docs
 }
 
 func (db *DB) Search(ids []int) []crawler.Document {

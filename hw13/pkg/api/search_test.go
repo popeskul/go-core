@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gorilla/mux"
 	"go-search/hw13/pkg/crawler"
+	"go-search/hw13/pkg/storage/memstore"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -63,8 +64,10 @@ func TestApi_search(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 			api := &Api{
-				Docs: tt.args.fields,
+				r:     mux.NewRouter(),
+				store: memstore.New(),
 			}
+			api.store.Add(tt.args.fields)
 			api.search(rr, req)
 
 			if rr.Code != tt.want.status {

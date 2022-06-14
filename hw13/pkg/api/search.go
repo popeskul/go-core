@@ -25,14 +25,14 @@ func (api *Api) search(w http.ResponseWriter, r *http.Request) {
 	query := vars["query"]
 
 	store := cache.New()
-	store.Add(api.Docs)
+	store.Add(api.store.GetAll())
 
 	ids := store.Search(query)
 	if len(ids) == 0 {
 		w.WriteHeader(http.StatusNotFound)
 	}
 
-	doc, err := search(query, api.Docs)
+	doc, err := search(query, api.store.GetAll())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

@@ -11,15 +11,12 @@ import (
 )
 
 type Api struct {
-	Docs []crawler.Document
-
 	r     *mux.Router
 	store storage.Interface
 }
 
 func New(router *mux.Router, docs []crawler.Document) *Api {
 	s := &Api{
-		Docs:  docs,
 		r:     router,
 		store: memstore.New(),
 	}

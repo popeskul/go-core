@@ -19,7 +19,7 @@ import (
 // @Router /docs [get]
 func (api *Api) docs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(api.Docs)
+	_ = json.NewEncoder(w).Encode(api.store.GetAll())
 }
 
 // @Summary Get document by id
@@ -81,8 +81,8 @@ func (api *Api) createDoc(w http.ResponseWriter, r *http.Request) {
 	d.ID = rand.Intn(100000)
 
 	api.store.Add([]crawler.Document{d})
-	doc := api.Docs[len(api.Docs)-1]
-	
+	doc := api.store.GetAll()[len(api.store.GetAll())-1]
+
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(doc)
 }

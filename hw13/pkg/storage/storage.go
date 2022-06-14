@@ -14,4 +14,5 @@ type Interface interface {
 	PartialUpdate(int, crawler.Document) (crawler.Document, error)
 	FullUpdate(int, crawler.Document) (crawler.Document, error)
 	Delete(int) error
+	GetAll() []crawler.Document
 }
