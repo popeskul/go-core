@@ -3,10 +3,8 @@ package api
 import (
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"go-search/hw13/pkg/crawler"
 	_ "go-search/hw13/pkg/docs"
 	"go-search/hw13/pkg/storage"
-	"go-search/hw13/pkg/storage/memstore"
 	"net/http"
 )
 
@@ -15,12 +13,11 @@ type Api struct {
 	store storage.Interface
 }
 
-func New(router *mux.Router, docs []crawler.Document) *Api {
+func New(router *mux.Router, storage storage.Interface) *Api {
 	s := &Api{
 		r:     router,
-		store: memstore.New(),
+		store: storage,
 	}
-	s.store.Add(docs)
 	s.routes()
 	return s
 }

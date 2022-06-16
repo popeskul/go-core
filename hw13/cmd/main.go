@@ -51,7 +51,7 @@ func main() {
 	fmt.Println("Site scanning finished")
 
 	r := mux.NewRouter()
-	webapp.New(r, docs)
+	webapp.New(r, app.storage)
 
 	go func() {
 		log.Fatal(http.ListenAndServe("localhost:8080", r))
