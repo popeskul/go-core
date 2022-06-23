@@ -107,12 +107,6 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "type": "string"
-                        }
                     }
                 }
             },
@@ -292,12 +286,6 @@
                     },
                     "400": {
                         "description": "Bad request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
                         "schema": {
                             "type": "string"
                         }

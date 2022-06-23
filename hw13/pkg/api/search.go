@@ -17,7 +17,6 @@ import (
 // @Produce  json
 // @Param query path string true "Search query"
 // @Success 200 {integer} crawler.Document
-// @Failure 404 {string} string "Not found"
 // @Failure 400 {string} string "Bad request"
 // @Router /search/{query} [get]
 func (api *Api) search(w http.ResponseWriter, r *http.Request) {
@@ -29,12 +28,13 @@ func (api *Api) search(w http.ResponseWriter, r *http.Request) {
 
 	ids := store.Search(query)
 	if len(ids) == 0 {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusOK)
 	}
 
 	doc, err := search(query, api.store.GetAll())
+	fmt.Println("searching for", query)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 

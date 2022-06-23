@@ -110,10 +110,6 @@ paths:
           description: Bad request
           schema:
             type: string
-        "404":
-          description: Not found
-          schema:
-            type: string
       summary: Get document by id
       tags:
       - docs
@@ -205,10 +201,6 @@ paths:
             type: integer
         "400":
           description: Bad request
-          schema:
-            type: string
-        "404":
-          description: Not found
           schema:
             type: string
       summary: Search documents

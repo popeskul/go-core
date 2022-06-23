@@ -11,14 +11,14 @@ import (
 )
 
 type Searcher struct {
-	Storage storage.Interface
-	Index   index.Interface
-	Scanner crawler.Interface
+	storage storage.Interface
+	index   index.Interface
+	scanner crawler.Interface
 	sites   []string
 	depth   int
 }
 
-const fileName = "Storage.json"
+const fileName = "storage.json"
 
 func New(
 	scanner crawler.Interface,
@@ -28,16 +28,16 @@ func New(
 	depth int,
 ) *Searcher {
 	return &Searcher{
-		Scanner: scanner,
-		Storage: storage,
-		Index:   index,
+		scanner: scanner,
+		storage: storage,
+		index:   index,
 		sites:   sites,
 		depth:   depth,
 	}
 }
 
-func (s *Searcher) Scan() ([]crawler.Document, error) {
-	docs, err := s.read(fileName)
+func (s *Searcher) ScanForDocuments() ([]crawler.Document, error) {
+	docs, err := s.readDocumentsFromFile(fileName)
 	if err == nil {
 		return docs, nil
 	}
@@ -49,7 +49,7 @@ func (s *Searcher) Scan() ([]crawler.Document, error) {
 	}
 	defer f.Close()
 
-	_, err = s.Storage.Write(f, docs)
+	_, err = s.storage.Write(f, docs)
 	if err != nil {
 		return nil, err
 	}
@@ -57,14 +57,14 @@ func (s *Searcher) Scan() ([]crawler.Document, error) {
 	return docs, nil
 }
 
-func (s *Searcher) read(fileName string) ([]crawler.Document, error) {
+func (s *Searcher) readDocumentsFromFile(fileName string) ([]crawler.Document, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	docs, err := s.Storage.Read(f)
+	docs, err := s.storage.Read(f)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (s *Searcher) scanUrls() []crawler.Document {
 	var allDocs []crawler.Document
 
 	for _, url := range s.sites {
-		docs, errs := s.Scanner.Scan(url, s.depth)
+		docs, errs := s.scanner.Scan(url, s.depth)
 		if errs != nil {
 			fmt.Println("Error scan: ", errs)
 		}
@@ -90,4 +90,16 @@ func (s *Searcher) scanUrls() []crawler.Document {
 	}
 
 	return allDocs
+}
+
+func (s *Searcher) AddDocumentsToStorage(docs []crawler.Document) {
+	s.storage.Add(docs)
+}
+
+func (s *Searcher) AddDocumentsToIndex(docs []crawler.Document) {
+	s.index.Add(docs)
+}
+
+func (s *Searcher) Storage() storage.Interface {
+	return s.storage
 }

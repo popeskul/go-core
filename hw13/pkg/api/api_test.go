@@ -4,7 +4,6 @@ import (
 	"github.com/gorilla/mux"
 	"go-search/hw13/pkg/crawler"
 	"go-search/hw13/pkg/storage/memstore"
-	"os"
 	"testing"
 )
 
@@ -25,5 +24,5 @@ func TestMain(m *testing.M) {
 	api = New(r, store)
 	api.store.Add(docs)
 	api.routes()
-	os.Exit(m.Run())
+	m.Run()
 }

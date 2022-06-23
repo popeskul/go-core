@@ -50,7 +50,7 @@ func TestApi_search(t *testing.T) {
 				},
 			},
 			want: want{
-				status: http.StatusNotFound,
+				status: http.StatusOK,
 				body:   "",
 			},
 		},

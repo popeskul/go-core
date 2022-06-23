@@ -49,11 +49,6 @@ func TestApi_find(t *testing.T) {
 			query:  "",
 			status: http.StatusBadRequest,
 		},
-		{
-			name:   "invalid",
-			query:  "123123",
-			status: http.StatusNotFound,
-		},
 	}
 
 	for _, tt := range tests {

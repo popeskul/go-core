@@ -30,7 +30,6 @@ func (api *Api) docs(w http.ResponseWriter, r *http.Request) {
 // @Param id path int true "Document id"
 // @Success 200 {object} crawler.Document
 // @Failure 400 {object} string "Bad request"
-// @Failure 404 {object} string "Not found"
 // @Router /docs/{id} [get]
 func (api *Api) findDoc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -43,7 +42,7 @@ func (api *Api) findDoc(w http.ResponseWriter, r *http.Request) {
 
 	doc, err := api.store.FindById(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
