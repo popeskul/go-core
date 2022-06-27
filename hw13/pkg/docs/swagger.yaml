@@ -1,0 +1,209 @@
+basePath: /api/v1
+definitions:
+  crawler.Document:
+    properties:
+      body:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      url:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is simple search.
+  title: Go Search
+  version: "1.0"
+paths:
+  /docs:
+    get:
+      consumes:
+      - application/json
+      description: Get all documents
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/crawler.Document'
+            type: array
+      summary: Get all documents
+      tags:
+      - docs
+    post:
+      consumes:
+      - application/json
+      description: Create document
+      parameters:
+      - description: Document
+        in: body
+        name: doc
+        required: true
+        schema:
+          $ref: '#/definitions/crawler.Document'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/crawler.Document'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+      summary: Create document
+      tags:
+      - docs
+  /docs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete document
+      parameters:
+      - description: Document id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/crawler.Document'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Not found
+          schema:
+            type: string
+      summary: Delete document
+      tags:
+      - docs
+    get:
+      consumes:
+      - application/json
+      description: Get document by id
+      parameters:
+      - description: Document id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/crawler.Document'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+      summary: Get document by id
+      tags:
+      - docs
+    patch:
+      consumes:
+      - application/json
+      description: Patch document
+      parameters:
+      - description: Document id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Document
+        in: body
+        name: doc
+        required: true
+        schema:
+          $ref: '#/definitions/crawler.Document'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/crawler.Document'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Not found
+          schema:
+            type: string
+      summary: Patch document
+      tags:
+      - docs
+    put:
+      consumes:
+      - application/json
+      description: Update document
+      parameters:
+      - description: Document id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Document
+        in: body
+        name: doc
+        required: true
+        schema:
+          $ref: '#/definitions/crawler.Document'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/crawler.Document'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Not found
+          schema:
+            type: string
+      summary: Update document
+      tags:
+      - docs
+  /search/{query}:
+    get:
+      consumes:
+      - application/json
+      description: Search documents
+      parameters:
+      - description: Search query
+        in: path
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad request
+          schema:
+            type: string
+      summary: Search documents
+      tags:
+      - search
+swagger: "2.0"
