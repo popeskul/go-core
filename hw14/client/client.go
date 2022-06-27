@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"github.com/google/uuid"
@@ -10,6 +11,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -21,23 +25,32 @@ func main() {
 	defer conn.Close()
 
 	client := messages_proto.NewMessengerClient(conn)
-	err = printAllMessagesOnServer(client)
-	if err != nil {
-		log.Fatal("failed to receive messages: ", err)
-		return
-	}
 
-	message := &messages_proto.Message{Id: int64(uuid.New().ID()), Text: "Message", CreatedAt: timestamppb.Now()}
-	_, err = client.Send(context.Background(), message)
-	if err != nil {
-		log.Fatal("failed to send message: ", err)
-	}
+	input := bufio.NewScanner(os.Stdin)
 
-	err = printAllMessagesOnServer(client)
-	if err != nil {
-		log.Fatal("failed to receive messages: ", err)
-		return
-	}
+	go func() {
+		fmt.Println("Please enter a message:")
+		for input.Scan() {
+			message := &messages_proto.Message{Id: int64(uuid.New().ID()), Text: input.Text(), CreatedAt: timestamppb.Now()}
+			_, err = client.Send(context.Background(), message)
+			if err != nil {
+				log.Fatal("failed to send message: ", err)
+			}
+
+			err = printAllMessagesOnServer(client)
+			if err != nil {
+				log.Fatal("failed to receive messages: ", err)
+				return
+			}
+
+			fmt.Println("Please enter a message:")
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+	fmt.Println("Server shutting down...")
 }
 
 func printAllMessagesOnServer(client messages_proto.MessengerClient) error {
