@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"go-search/hw13/pkg/api"
 	"go-search/hw13/pkg/crawler/spider"
 	_ "go-search/hw13/pkg/docs"
 	"go-search/hw13/pkg/index/cache"
 	"go-search/hw13/pkg/searcher"
 	"go-search/hw13/pkg/storage/memstore"
-	"go-search/hw13/pkg/webapp"
 	"log"
 	"net/http"
 	"os"
@@ -44,7 +44,7 @@ func main() {
 	fmt.Println("Site scanning finished")
 
 	r := mux.NewRouter()
-	webapp.New(r, app.Storage())
+	api.New(r, app.Storage())
 
 	go func() {
 		log.Fatal(http.ListenAndServe("localhost:8080", r))
