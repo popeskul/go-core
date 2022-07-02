@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS films_directors;
+DROP TABLE IF EXISTS films_actors;
+DROP TABLE IF EXISTS films;
+DROP TABLE IF EXISTS studios;
+DROP TABLE IF EXISTS persons;
+DROP TYPE IF EXISTS rating;
