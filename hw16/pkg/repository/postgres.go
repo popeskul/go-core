@@ -15,11 +15,7 @@ type Config struct {
 	DBName   string
 }
 
-type DB struct {
-	pool *pgxpool.Pool
-}
-
-func NewPostgresDB(cfg Config) (*DB, error) {
+func NewPostgresDB(cfg Config) (*pgxpool.Pool, error) {
 	port, err := strconv.Atoi(cfg.Port)
 	if err != nil {
 		return nil, err
@@ -41,5 +37,5 @@ func NewPostgresDB(cfg Config) (*DB, error) {
 		return nil, fmt.Errorf("database ping failed: %v", err)
 	}
 
-	return &DB{pool: pool}, err
+	return pool, err
 }

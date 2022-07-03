@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/jackc/pgx/v4/pgxpool"
 	"reflect"
 	"testing"
 )
@@ -9,7 +10,7 @@ func TestNewPostgresDB(t *testing.T) {
 	tests := []struct {
 		name  string
 		args  Config
-		want  *DB
+		want  *pgxpool.Pool
 		error bool
 	}{
 		{
@@ -21,7 +22,7 @@ func TestNewPostgresDB(t *testing.T) {
 				Port:     "5432",
 				DBName:   "postgres",
 			},
-			want:  &DB{},
+			want:  &pgxpool.Pool{},
 			error: false,
 		},
 		{
@@ -33,7 +34,7 @@ func TestNewPostgresDB(t *testing.T) {
 				Port:     "234",
 				DBName:   "asd",
 			},
-			want:  &DB{},
+			want:  nil,
 			error: true,
 		},
 	}

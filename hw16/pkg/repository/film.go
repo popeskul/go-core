@@ -2,11 +2,20 @@ package repository
 
 import (
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go-search/hw16/pkg/model"
 	"golang.org/x/net/context"
 )
 
-func (db *DB) Films(ctx context.Context, studio_id int) ([]model.Film, error) {
+type FilmRepository struct {
+	pool *pgxpool.Pool
+}
+
+func NewFilmRepository(pool *pgxpool.Pool) *FilmRepository {
+	return &FilmRepository{pool: pool}
+}
+
+func (db *FilmRepository) Films(ctx context.Context, studio_id int) ([]model.Film, error) {
 	rr := struct {
 		rows pgx.Rows
 		err  error
@@ -43,7 +52,7 @@ func (db *DB) Films(ctx context.Context, studio_id int) ([]model.Film, error) {
 	return films, nil
 }
 
-func (db *DB) AddFilms(ctx context.Context, films []model.Film) error {
+func (db *FilmRepository) AddFilms(ctx context.Context, films []model.Film) error {
 	tx, err := db.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -65,7 +74,7 @@ func (db *DB) AddFilms(ctx context.Context, films []model.Film) error {
 	return tx.Commit(ctx)
 }
 
-func (db *DB) DeleteFilmById(ctx context.Context, id int) error {
+func (db *FilmRepository) DeleteFilmById(ctx context.Context, id int) error {
 	tx, err := db.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -80,7 +89,7 @@ func (db *DB) DeleteFilmById(ctx context.Context, id int) error {
 	return tx.Commit(ctx)
 }
 
-func (db *DB) DeleteAll(ctx context.Context) error {
+func (db *FilmRepository) DeleteAll(ctx context.Context) error {
 	tx, err := db.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -95,7 +104,7 @@ func (db *DB) DeleteAll(ctx context.Context) error {
 	return tx.Commit(ctx)
 }
 
-func (db *DB) UpdateFilm(ctx context.Context, film model.Film) error {
+func (db *FilmRepository) UpdateFilm(ctx context.Context, film model.Film) error {
 	tx, err := db.pool.Begin(ctx)
 	if err != nil {
 		return err

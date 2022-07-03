@@ -15,13 +15,7 @@ type App struct {
 var app *App
 
 func TestMain(m *testing.M) {
-	var err error
-
-	app = &App{
-		ctx: context.Background(),
-	}
-
-	app.storage, err = NewPostgresDB(Config{
+	pool, err := NewPostgresDB(Config{
 		User:     "postgres",
 		Password: "postgres",
 		Url:      "localhost",
@@ -31,6 +25,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		fmt.Printf("Error to create DB: %v\n", err)
 		return
+	}
+
+	app = &App{
+		ctx:     context.Background(),
+		storage: NewFilmRepository(pool),
 	}
 
 	err = app.storage.DeleteAll(app.ctx)

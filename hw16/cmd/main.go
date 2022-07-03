@@ -25,12 +25,7 @@ func init() {
 }
 
 func main() {
-	app := app{
-		ctx: context.Background(),
-	}
-	var err error
-
-	app.storage, err = repository.NewPostgresDB(repository.Config{
+	pool, err := repository.NewPostgresDB(repository.Config{
 		User:     os.Getenv("POSTGRES_USER"),
 		Password: os.Getenv("POSTGRES_PASSWORD"),
 		Url:      os.Getenv("POSTGRES_URL"),
@@ -40,6 +35,11 @@ func main() {
 	if err != nil {
 		fmt.Printf("Unable to connect to database: %v\n", err)
 		os.Exit(1)
+	}
+
+	app := app{
+		ctx:     context.Background(),
+		storage: repository.NewFilmRepository(pool),
 	}
 
 	fmt.Println("Get films")
