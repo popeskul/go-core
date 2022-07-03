@@ -15,14 +15,14 @@ func NewFilmRepository(pool *pgxpool.Pool) *FilmRepository {
 	return &FilmRepository{pool: pool}
 }
 
-func (db *FilmRepository) Films(ctx context.Context, studio_id int) ([]model.Film, error) {
+func (db *FilmRepository) Films(ctx context.Context, studioId int) ([]model.Film, error) {
 	rr := struct {
 		rows pgx.Rows
 		err  error
 	}{}
 
-	if studio_id != 0 {
-		rr.rows, rr.err = db.pool.Query(ctx, "SELECT * FROM films WHERE studio_id = $1", studio_id)
+	if studioId != 0 {
+		rr.rows, rr.err = db.pool.Query(ctx, "SELECT * FROM films WHERE studio_id = $1", studioId)
 	} else {
 		rr.rows, rr.err = db.pool.Query(ctx, "SELECT * FROM films")
 	}
