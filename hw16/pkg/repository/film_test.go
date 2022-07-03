@@ -97,7 +97,7 @@ func TestDB_Films(t *testing.T) {
 	createFilmsIfNotExist(t, mockFilms)
 
 	// Check for added films
-	films, err := app.storage.Films(app.ctx)
+	films, err := app.storage.Films(app.ctx, 0)
 	if err != nil {
 		t.Errorf("Error to get films: %v\n", err)
 	}
@@ -141,7 +141,7 @@ func TestDB_Films(t *testing.T) {
 func TestDB_UpdateFilm(t *testing.T) {
 	createFilmsIfNotExist(t, mockFilms)
 
-	films, err := app.storage.Films(app.ctx)
+	films, err := app.storage.Films(app.ctx, 0)
 	if err != nil {
 		return
 	}
@@ -192,7 +192,7 @@ func TestDB_DeleteAll(t *testing.T) {
 func TestDB_DeleteFilmById(t *testing.T) {
 	createFilmsIfNotExist(t, mockFilms)
 
-	films, err := app.storage.Films(app.ctx)
+	films, err := app.storage.Films(app.ctx, 0)
 	if err != nil {
 		t.Errorf("Error to get films: %v\n", err)
 	}
@@ -203,7 +203,7 @@ func TestDB_DeleteFilmById(t *testing.T) {
 		t.Errorf("Error to DeleteFilmById: %v\n", err)
 	}
 
-	films, err = app.storage.Films(app.ctx)
+	films, err = app.storage.Films(app.ctx, 0)
 	if err != nil {
 		t.Errorf("Error to get films: %v\n", err)
 	}
@@ -225,7 +225,7 @@ func createFilmsIfNotExist(t *testing.T, films []model.Film) {
 	t.Helper()
 
 	// Check for empty list
-	films, err := app.storage.Films(app.ctx)
+	films, err := app.storage.Films(app.ctx, 0)
 	if err != nil {
 		t.Errorf("Error to get films: %v\n", err)
 	}
@@ -250,7 +250,7 @@ func createFilmsIfNotExist(t *testing.T, films []model.Film) {
 	}
 
 	// Check for added films
-	films, err = app.storage.Films(app.ctx)
+	films, err = app.storage.Films(app.ctx, 0)
 	if err != nil {
 		t.Errorf("Error to get films: %v\n", err)
 	}

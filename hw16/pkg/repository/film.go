@@ -6,14 +6,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (db *DB) Films(ctx context.Context, studio_ids ...int) ([]model.Film, error) {
+func (db *DB) Films(ctx context.Context, studio_id int) ([]model.Film, error) {
 	rr := struct {
 		rows pgx.Rows
 		err  error
 	}{}
 
-	if len(studio_ids) == 1 && studio_ids[0] != 0 {
-		rr.rows, rr.err = db.pool.Query(ctx, "SELECT * FROM films WHERE studio_id = $1", studio_ids[0])
+	if studio_id != 0 {
+		rr.rows, rr.err = db.pool.Query(ctx, "SELECT * FROM films WHERE studio_id = $1", studio_id)
 	} else {
 		rr.rows, rr.err = db.pool.Query(ctx, "SELECT * FROM films")
 	}

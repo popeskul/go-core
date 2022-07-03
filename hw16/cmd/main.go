@@ -43,7 +43,7 @@ func main() {
 	}
 
 	fmt.Println("Get films")
-	films, err := app.storage.Films(app.ctx)
+	films, err := app.storage.Films(app.ctx, 0)
 	if err != nil {
 		fmt.Printf("Error to select films: %v\n", err)
 		os.Exit(1)
