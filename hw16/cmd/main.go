@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
 	"github.com/joho/godotenv"
 	"go-search/hw16/pkg/model"
@@ -40,6 +42,12 @@ func main() {
 	app := app{
 		ctx:     context.Background(),
 		storage: repository.NewFilmRepository(pool),
+	}
+
+	err = doMigrationUp()
+	if err != nil {
+		fmt.Printf("Error running migrations: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("Get films")
@@ -81,6 +89,23 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("%v", f)
+}
+
+func doMigrationUp() error {
+	m, err := migrate.New(
+		"file://./hw16/db/migrations",
+		"postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable",
+	)
+	if err != nil {
+		return fmt.Errorf("error creating migrate: %v", err)
+	}
+
+	err = m.Up()
+	if err != nil {
+		return fmt.Errorf("error running migrations: %v", err)
+	}
+
+	return nil
 }
 
 var mockFilms = []model.Film{
