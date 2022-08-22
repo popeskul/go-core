@@ -1,0 +1,12 @@
+version: "3.5"
+
+services:
+  db_hw15:
+    container_name: db_hw15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    image: postgres:14.3-alpine

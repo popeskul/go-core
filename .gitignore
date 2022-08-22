@@ -3,3 +3,4 @@
 storage.json
 *.storage.json
 .env
+.project
